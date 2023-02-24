@@ -1,0 +1,111 @@
+
+root: ROOT
+run_name: NAME
+seed: 0                 
+dataset_seed: 0                            
+append: false                                     
+default_dtype: float32 
+allow_tf32: false
+
+
+# ========= network =========
+r_max: 6.0       
+num_layers: 4  
+
+chemical_embedding_irreps_out: 32x0e              
+feature_irreps_hidden: 32x0o + 32x0e + 32x1o + 32x1e  
+irreps_edge_sh: 0e + 1o                                   
+conv_to_output_hidden_irreps_out: 16x0e                            
+
+nonlinearity_type: gate                                               
+resnet: true    
+
+nonlinearity_scalars:
+  e: silu
+  o: tanh
+
+nonlinearity_gates:
+  e: silu
+  o: tanh
+
+# radial network basis
+num_basis: 8                                                        
+BesselBasis_trainable: true                                              
+PolynomialCutoff_p: 6  
+
+# radial network
+invariant_layers: 2     
+invariant_neurons: 64  
+avg_num_neighbors: auto
+use_sc: true  
+
+# data set
+dataset: ase                                                                   
+ase_args:
+      format: traj
+dataset_file_name: AuTiO2.traj 
+
+chemical_symbol_to_type:
+  Ti: 0
+  O: 1
+  Au: 2
+
+# logging
+wandb: false
+wandb_project: 3dn  
+wandb_resume: false   
+                                                                                
+verbose: info                                       
+log_batch_freq: 1000000       
+log_epoch_freq: 1       
+save_checkpoint_freq: -1         
+save_ema_checkpoint_freq: -1    
+
+# training
+n_train: 3000                                                            
+n_val: 815                                                            
+learning_rate: 0.005                                  
+
+batch_size: 1
+max_epochs: 5     
+train_val_split: sequential  
+shuffle: false    
+metrics_key: validation_loss   
+use_ema: true                  
+ema_decay: 0.99          
+ema_use_num_updates: true  
+
+# early stopping based on metrics values.
+early_stopping_patiences:   
+  validation_loss: 50
+
+# loss function
+loss_coeffs:  
+  forces: 1 
+  total_energy:    
+    - 1
+    - PerAtomMSELoss
+
+# output metrics
+metrics_components:
+  - - forces
+    - rmse
+    - PerSpecies: True
+      report_per_component: False
+  - - total_energy
+    - rmse
+    - PerAtom: True 
+    
+optimizer_name: Adam                                                          
+optimizer_amsgrad: true
+
+lr_scheduler_name: ReduceLROnPlateau
+lr_scheduler_patience: 100
+lr_scheduler_factor: 0.5
+
+
+per_species_rescale_shifts_trainable: false
+per_species_rescale_scales_trainable: false
+
+per_species_rescale_shifts: dataset_per_atom_total_energy_mean
+per_species_rescale_scales: dataset_forces_rms
